@@ -1,0 +1,55 @@
+// Prisma schema for AI-Waiter
+// Data model includes Restaurant, Order, MenuItem, and OrderItem
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id          Int       @id @default(autoincrement())
+  name        String
+  subdomain   String    @unique
+  menuItems   MenuItem[]
+  orders      Order[]
+}
+
+model MenuItem {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String?
+  price        Float
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id           Int       @id @default(autoincrement())
+  tableNumber  Int
+  createdAt    DateTime  @default(now())
+  status       OrderStatus @default(PENDING)
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId Int
+  items        OrderItem[]
+}
+
+enum OrderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  order     Order    @relation(fields: [orderId], references: [id])
+  orderId   Int
+  menuItem  MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId Int
+  quantity  Int
+}
